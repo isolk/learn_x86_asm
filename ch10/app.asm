@@ -1,12 +1,12 @@
 ;-----------------------------------------
 section header align=16
     entry dw start ; 偏移地址
-          dd section.code_main.start ; 段地址
+          dw section.code_main.start ; 段地址
     s_data dw 0x50 ; data段地址，此处保存的值，在加载到内存中，会替换成实际的data段物理地址
 ;----------------------------------------
 section code_main align=16 vstart=0
     start:
-    mov ds,[s_data]
+    mov ds,[cs:s_data]
     mov si,text
     mov ax,0
     mov di,ax

@@ -46,11 +46,15 @@ loop begin
 
 ; 程序已经读取完，并存放到0x10000-0x10200处
 ; 跳转到[0]处，移交指挥权
-mov ax,[6]
-add ax,ds
-mov [6],ax
+mov ax,[2]
+add ax,0x1000
+mov [2],ax ;段地址加实际的物理地址
 
-jmp [0]
+mov ax,[4]
+add ax,0x1000
+mov [4],ax ;数据段地址加实际的物理地址
+
+jmp far [0]
 
 times  510-($-$$) db 0 
 db 0x55,0xaa ; 这行的指令的意思是在511和512字节分别填入0x55，0xaa。这是BIOS对bootloader的要求，即512字节的最后两个字节必须是这两个数，以确实是有效的bootloader。
