@@ -1,17 +1,19 @@
 ;-----------------------------------------
 section header align=16
-    entry dw start ; 偏移地址
-          dw section.code_main.start ; 段地址
-    s_data dw 0x50 ; data段地址，此处保存的值，在加载到内存中，会替换成实际的data段物理地址
+    entry dw start              ; 入口的段内偏移地址
+          dw section.code.start ; 入口的段首地址
+    s_code dw section.code.start ; 代码段首地址
+    s_data dw section.data.start ; data段地址，此处保存的值，在加载到内存中，会替换成实际的data段物理地址
 ;----------------------------------------
-section code_main align=16 vstart=0
+section code align=16 vstart=0
     start:
-    mov ds,[cs:s_data]
+    mov ds,[s_data] ; 此时，ds被loader初始化为本程序头部段，把它指向自己的数据段
     mov si,text
     mov ax,0
     mov di,ax
     mov cx,text_end-text
     call print_hello
+    jmp $ 
 
     print_hello:
         ; 寄存器状态保护
@@ -41,7 +43,6 @@ section code_main align=16 vstart=0
         pop ax
     ret
 
-    jmp $ 
 
 ;------------------------------------
 section data align=16 vstart=0
