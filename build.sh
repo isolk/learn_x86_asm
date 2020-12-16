@@ -1,3 +1,11 @@
+help(){
+    echo "传入文件夹，文件夹内默认应该有loader.asm和app.asm文件。"
+    echo "编译文件夹: ./build ch10"
+    echo "编译且运行文件夹: ./build -r ch10"
+    echo "直接运行: ./build -q"
+    echo "显示帮助: ./build -h"
+}
+
 build(){
     nasm -o ${dir}/app.bin ${dir}/app.asm
     nasm -o ${dir}/loader.bin ${dir}/loader.asm
@@ -18,10 +26,12 @@ run(){
 }
 
 r=false
-while getopts "r" arg
+while getopts "qrh" arg
 do
     case $arg in
+    h) help;exit 0;;
     r) r=true;;
+    q) run; exit 0;;
     *)
     esac
 done
