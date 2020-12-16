@@ -3,6 +3,7 @@ help(){
     echo "编译文件夹: ./build ch10"
     echo "编译且运行文件夹: ./build -r ch10"
     echo "直接运行: ./build -q"
+    echo "清理二进制文件: ./build -c"
     echo "显示帮助: ./build -h"
 }
 
@@ -26,12 +27,14 @@ run(){
 }
 
 r=false
-while getopts "qrh" arg
+c=false
+while getopts "qrhc" arg
 do
     case $arg in
     h) help;exit 0;;
     r) r=true;;
     q) run; exit 0;;
+    c) c=true; break;;
     *)
     esac
 done
@@ -48,6 +51,12 @@ then
 fi
 
 dir=$1
+
+if [[ $c == true ]]
+then
+    rm ${dir}/app.bin ${dir}/loader.bin
+    exit 0
+fi
 
 prepareFile
 build
