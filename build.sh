@@ -1,14 +1,19 @@
 help(){
     echo "传入文件夹，文件夹内默认应该有loader.asm和app.asm文件。"
-    echo "编译文件夹: ./build ch10"
-    echo "编译且运行文件夹: ./build -r ch10"
-    echo "直接运行: ./build -q"
+    echo "编译且运行: ./build ch10"
+    echo "仅编译: ./build -b ch10"
+    echo "仅运行: ./build -r"
     echo "清理二进制文件: ./build -c"
     echo "显示帮助: ./build -h"
 }
 
 build(){
     nasm -o ${dir}/app.bin ${dir}/app.asm
+    if [ $? -ne 0 ]
+    then
+        echo "编译app.asm失败"
+        exit 7
+    fi
     nasm -o ${dir}/loader.bin ${dir}/loader.asm
 }
 
@@ -26,15 +31,15 @@ run(){
     bochs -qf bochs.cfg
 }
 
-r=false
-c=false
-while getopts "qrhc" arg
+justBuild=false
+justClear=false
+while getopts "brhc" arg
 do
     case $arg in
     h) help;exit 0;;
-    r) r=true;;
-    q) run; exit 0;;
-    c) c=true; break;;
+    b) justBuild=true;;
+    r) run; exit 0;;
+    c) justClear=true; break;;
     *)
     esac
 done
@@ -52,7 +57,7 @@ fi
 
 dir=$1
 
-if [[ $c == true ]]
+if [[ $justClear == true ]]
 then
     rm ${dir}/app.bin ${dir}/loader.bin
     exit 0
@@ -60,9 +65,15 @@ fi
 
 prepareFile
 build
+if [ $? -ne 0 ]
+then
+    echo "编译失败"
+    exit 7
+fi
+
 copyFiles
 
-if [ $r == true ] 
+if [ $justBuild != true ] 
 then
     run
 fi
