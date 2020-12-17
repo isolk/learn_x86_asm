@@ -2,6 +2,7 @@
 section header align=16
     entry dw start              ; 入口的段内偏移地址
           dw section.code.start ; 入口的段首地址
+    segment_length dw (s_data-s_code)/2+1
     s_code dw section.code.start ; 代码段首地址
     s_data dw section.data.start ; data段地址，此处保存的值，在加载到内存中，会替换成实际的data段物理地址
 ;----------------------------------------
