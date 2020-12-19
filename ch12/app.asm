@@ -1,5 +1,5 @@
 ;----------动态时间显示----------
-section header align=16
+section header align=16 vstart=0
     entry dw start                  
           dw section.code.start     
     s_lengh dw (s_end-s_begin)/2
@@ -17,32 +17,50 @@ section code align=16 vstart=0
         push dx
         push es
 
+        mov byte al,[12*160+33*2+1] ; 假设al 1010_0101
+
+        mov bl,al    ; bl 1010_0101
+        not bl       ; bl 0101_1010
+        and bl,0xf0  ; bl 0000_1010
+        and al,0xf0  ; al 1010_0000
+        or al,bl     ; al 1010_1010
+
+        mov [12*160 + 33*2+1],al
+
         .r:
             mov al,0x0a
+            or al,0x80
             out 0x70,al
             in al,0x71
             test al,0x80  ; 测试第7位是否为1，为1表示当前时钟数据还不能访问
             jnz .r
+
+        mov al,0x0c
+        or al,0x80
+        out 0x70,al
+        in al,0x71  ; 读c寄存器，仅仅是为了告诉时钟芯片，中断已经处理，可以继续接受新的中断。
+        test al,0xc0
+        jz .exit
         
         ; 从cmoss读出时间值
         mov al,0
+        or al,0x80
         out 0x70,al
         in al,0x71  
         push ax     ; 读入秒，压栈
 
         mov al,2
+        or al,0x80
         out 0x70,al
         in al,0x71  
         push ax     ; 读入分，压栈
 
         mov al,4
+        or al,0x80
         out 0x70,al
         in al,0x71  
         push ax     ; 读入小时，压栈
         
-        mov al,0x0c
-        out 0x70,al
-        in al,0x71  ; 读c寄存器，仅仅是为了告诉时钟芯片，中断已经处理，可以继续接受新的中断。
 
         ; 将时间输出到显存中
         mov ax,0xb800
@@ -82,7 +100,8 @@ section code align=16 vstart=0
         pop cx
         pop bx
         pop ax
-        iret
+
+        .exit :iret
     
     ; 将bcd转为字符形式，输入:al,返回ax
     transter_bcd:
@@ -106,10 +125,10 @@ section code align=16 vstart=0
 
     start:
         ; 初始化栈段、数据段
-        mov ax,s_stack
+        mov ax,[s_stack]
         mov ss,ax
         mov sp,ss_pointer ; 栈自顶向下，所以初始指针要指向栈顶部。
-        mov ax,s_data
+        mov ax,[s_data]
         mov ds,ax
 
         ; 计算时钟芯片的中断向量地址
@@ -127,10 +146,17 @@ section code align=16 vstart=0
         mov word [es:bx+2],cs         ; 再写入段地址
         pop es
 
+        mov al,0x0a
+        or al,0x80
+        out 0x70,al;
+        mov al,0x2d
+        out 0x71,al
+
         ; 设置时钟芯片的寄存器状态，告诉它可以发送中断
         mov al,0x0b ; 这个值表示cmoss的第0x0b地址，保存着时钟芯片的b寄存器状态。
+        or al,0x80
         out 0x70,al ; 不要和之前的0x70混淆，这个是cmoss的内存索引端口，此端口要传入需要访问cmoss的内部地址。
-        mov al,0x12 ; 00010010
+        mov al,0x42 ; 00010010
         out 0x71,al ; 0x71是cmoss的数据端口，传入0x12，请参考b寄存器各位的标志含义。
 
         ; 必须读一下c寄存器，不然中断不会开始
@@ -148,12 +174,12 @@ section code align=16 vstart=0
 
         mov cx,0xb800
         mov ds,cx
-        mov byte [12*160 + 33*2],'@'
+        mov byte [12*160 + 33*2],'*'
         mov byte [12*160 + 33*2+1],0x70
+
 
     .idle:
         hlt
-        not byte [12*160 + 33*2+1]
         jmp .idle
 
 ;----------栈段----------
