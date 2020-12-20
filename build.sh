@@ -3,6 +3,7 @@ help(){
     echo "编译且运行: ./build ch10"
     echo "仅编译: ./build -b ch10"
     echo "仅运行: ./build -r"
+    echo "额外复制到虚拟机中: ./build -v"
     echo "清理二进制文件: ./build -c"
     echo "显示帮助: ./build -h"
 }
@@ -33,13 +34,15 @@ run(){
 
 justBuild=false
 justClear=false
-while getopts "brhc" arg
+copy=false
+while getopts "brhcv" arg
 do
     case $arg in
     h) help;exit 0;;
     b) justBuild=true;;
     r) run; exit 0;;
     c) justClear=true; break;;
+    v) copy=true; break;;
     *)
     esac
 done
@@ -76,4 +79,9 @@ copyFiles
 if [ $justBuild != true ] 
 then
     run
+fi
+
+if [ $copy == true ]
+then
+	dd bs=1024 count=1024 if=disk1.img of=ynix/ynix.vhd conv=notrunc
 fi
