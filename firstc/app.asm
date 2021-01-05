@@ -1,10 +1,11 @@
-;使用第二种方式打印hello,world
+dw p_end ; loader大小
+
 mov ax,0xb800  ; 这个地址是显存文字模式的起始地址,在此处开始填入字符的ASCII码，就会在屏幕上显示字符。
 mov es,ax      ; 使用[bx]形式寻址，默认是使用ds的值作为基本地址。
 
+mov ax,0x200
+mov ds,ax
 ;---------------------
-mov ax,cs
-mov ds,ax ; 代码段和数据段一致
 
 mov cx,text_end-text
 mov di,0 
@@ -24,4 +25,6 @@ jmp $ ;这个指令表示跳转到当前位置，也就是循环跳转当前位�
 
 text db 'hello,world!'
 text_end:
+times  1025-($-$$) db 0 
+p_end:
 ;--------------------
